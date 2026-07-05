@@ -82,7 +82,46 @@
   }
   .card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
   .card-head .idx{font-size:12px;font-weight:700;color:var(--ink-dim);letter-spacing:.04em;text-transform:uppercase;}
+  .card-head .btn-group{display:flex;gap:12px;align-items:center;}
   .rm-btn{background:none;border:none;color:var(--danger);font-size:13px;font-weight:600;cursor:pointer;padding:2px 4px;}
+  .cp-btn{background:none;border:1px solid var(--accent);color:var(--accent);font-size:11.5px;font-weight:700;cursor:pointer;padding:3px 8px;border-radius:5px;}
+
+  .grid3cp{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;}
+
+  .saved-bar{
+    display:flex;justify-content:space-between;align-items:center;
+    background:var(--paper-2);border:1px solid var(--line-strong);border-radius:8px;
+    padding:8px 12px;margin-bottom:10px;font-size:12.5px;color:var(--ink-dim);
+  }
+  .saved-bar button{
+    background:var(--accent);color:#fff;border:none;border-radius:6px;
+    padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;
+  }
+
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(20,18,14,0.55);z-index:50;
+    display:flex;align-items:flex-end;justify-content:center;
+  }
+  .modal-box{
+    background:var(--paper);width:100%;max-width:520px;max-height:80vh;
+    border-radius:14px 14px 0 0;padding:14px;overflow-y:auto;
+  }
+  .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .modal-head span{font-size:15px;font-weight:700;color:var(--ink);}
+  .modal-head button{background:none;border:none;font-size:18px;color:var(--ink-dim);cursor:pointer;padding:2px 6px;}
+  .saved-item{
+    background:var(--paper-2);border:1px solid var(--line-strong);border-radius:8px;
+    padding:10px 12px;margin-bottom:8px;
+  }
+  .saved-item .top{display:flex;justify-content:space-between;font-size:13.5px;font-weight:700;color:var(--ink);}
+  .saved-item .meta2{font-size:11.5px;color:var(--ink-dim);margin-top:2px;}
+  .saved-item .row-actions{display:flex;gap:8px;margin-top:8px;}
+  .saved-item .row-actions button{
+    flex:1;padding:7px;border-radius:6px;font-size:12.5px;font-weight:700;cursor:pointer;border:1px solid var(--line-strong);
+  }
+  .saved-item .load-btn{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .saved-item .del-btn{background:none;color:var(--danger);border-color:var(--danger);}
+  .empty-saved{text-align:center;color:var(--ink-dim);font-size:13px;padding:16px 0;}
 
   .field-full{margin-bottom:8px;}
   .grid3{display:grid;grid-template-columns:1.5fr 0.8fr 1fr;gap:8px;margin-bottom:8px;}
@@ -133,17 +172,35 @@
     font-size:13px;margin-top:14px;text-align:center;
   }
 
-  .actions{display:flex;gap:10px;margin-top:16px;}
+  .actions{display:flex;gap:8px;margin-top:16px;}
   .actions button{
-    flex:1;padding:13px;border-radius:8px;font-size:14.5px;font-weight:700;cursor:pointer;
+    flex:1;padding:12px 6px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;
     border:1px solid var(--line-strong);background:var(--paper-2);color:var(--ink);
   }
   .actions button.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .actions button.whatsapp{background:#25D366;border-color:#25D366;color:#fff;}
+
+  .force-upper{text-transform:uppercase;}
+  .design-card input.force-upper{text-transform:uppercase;}
+
+  .comments-box{margin-top:16px;}
+  .comments-box label{display:block;font-size:11.5px;color:var(--ink-dim);margin-bottom:4px;}
+  .comments-box textarea{
+    width:100%;border:1px solid var(--line-strong);border-radius:6px;background:#fff;
+    color:var(--ink);font-size:13.5px;padding:9px 10px;resize:vertical;min-height:52px;
+    font-family:inherit;line-height:1.5;
+  }
+  .comments-box textarea:focus{outline:none;border-color:var(--accent);}
+
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="page-title">Order Confirmation</div>
+  <div class="saved-bar" id="savedBar">
+    <span>📄 <span id="savedCount">0</span> saved order(s)</span>
+    <button id="viewSavedBtn" type="button">View</button>
+  </div>
 
   <div class="sheet">
     <div class="letterhead">
@@ -153,11 +210,14 @@
     </div>
 
     <div class="meta">
-      <div class="item"><label>Reference No.</label><input type="text" id="orderNo" placeholder="e.g. SO-09"></div>
+      <div class="item"><label>Reference No.</label><input type="text" id="orderNo" class="force-upper" placeholder="e.g. SO-01"></div>
       <div class="item"><label>Date &amp; time</label><span class="readonly-field" id="orderDate"></span></div>
     </div>
     <div class="meta">
-      <div class="item full"><label>Client name</label><input type="text" id="clientName" placeholder="Client name"></div>
+      <div class="item full"><label>Client name</label><input type="text" id="clientName" class="force-upper" placeholder="Client name" enterkeyhint="next"></div>
+    </div>
+    <div class="meta">
+      <div class="item full"><label>Customer WhatsApp no.</label><input type="tel" inputmode="numeric" id="waNumber" placeholder="10-digit number" maxlength="10" enterkeyhint="next"></div>
     </div>
 
     <div class="section-label">Designs</div>
@@ -177,6 +237,11 @@
       <div class="t-row balance" style="margin-top:8px;"><span>Total fine wt. due</span><span id="fineDue">0.00 g</span></div>
     </div>
 
+    <div class="comments-box">
+      <label>Comments (optional)</label>
+      <textarea id="comments"></textarea>
+    </div>
+
     <div class="notes-static">
       <p>- Labour payable in INR at order time.</p>
       <p>- Silver value will be calculated at delivery rate based on fine weight.</p>
@@ -188,8 +253,19 @@
   <div class="warn-msg" id="warnMsg" style="display:none;"></div>
 
   <div class="actions">
-    <button id="newBtn">Start new order</button>
-    <button class="primary" id="pdfBtn">Generate PDF</button>
+    <button id="newBtn">New order</button>
+    <button class="primary" id="pdfBtn">Download PDF</button>
+    <button class="whatsapp" id="waShareBtn">Share PDF</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="savedModal" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-head">
+      <span>Saved Orders</span>
+      <button id="closeSavedBtn" type="button">&times;</button>
+    </div>
+    <div id="savedList"></div>
   </div>
 </div>
 
@@ -586,21 +662,197 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
     'Labour payable in INR at order time.',
     'Silver value will be calculated at delivery rate based on fine weight.'
   ];
+  var STORAGE_KEY = 'silvara_saved_orders_v1';
+  var MAX_AGE_DAYS = 3;
 
   function fmtWt(v){ return (Math.round(v*1000)/1000).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:3}); }
   function fmtMoney(v){ return '₹' + (Math.round(v*100)/100).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}); }
   function fmtMoneyPdf(v){ return 'Rs. ' + (Math.round(v*100)/100).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}); }
   function numVal(input){ var v = parseFloat(input.value); return isNaN(v) ? 0 : v; }
 
+  function forceUppercase(input){
+    var start = input.selectionStart, end = input.selectionEnd;
+    var upper = input.value.toUpperCase();
+    if (upper !== input.value){
+      input.value = upper;
+      try { input.setSelectionRange(start, end); } catch (e){}
+    }
+  }
+
+  function digitsOnly(input, maxLen){
+    var cleaned = input.value.replace(/\D/g, '').slice(0, maxLen);
+    if (cleaned !== input.value) input.value = cleaned;
+  }
+
+  var SALESMAN_PREFIX = 'SO';
+  var sessionOrderCount = 1;
+  var currentOrderId = null;
+
   function nowString(){
     var d = new Date();
-    var opts = { day:'numeric', month:'long', year:'numeric', hour:'numeric', minute:'2-digit', hour12:true };
-    return d.toLocaleString('en-IN', opts);
+    var datePart = d.toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' });
+    var timePart = d.toLocaleTimeString('en-IN', { hour:'numeric', minute:'2-digit', hour12:true });
+    return datePart + '; ' + timePart;
   }
   function setDateNow(){ $('orderDate').textContent = nowString(); }
   setDateNow();
 
-  function makeCard(){
+  function generateRefNo(){
+    var serial = String(sessionOrderCount).padStart(2, '0');
+    return SALESMAN_PREFIX + '-' + serial;
+  }
+  function setRefNo(){ $('orderNo').value = generateRefNo(); }
+  setRefNo();
+
+  function newOrderId(){
+    return 'ord_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+  }
+  currentOrderId = newOrderId();
+
+  // ---------- Local storage (saved drafts) ----------
+  function loadSavedOrders(){
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return [];
+      var arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    } catch (e){
+      return [];
+    }
+  }
+  function persistSavedOrders(arr){
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+    } catch (e){
+      // storage unavailable or full - fail silently, autosave is a convenience feature
+    }
+  }
+  function cleanupOldOrders(){
+    var arr = loadSavedOrders();
+    var cutoff = Date.now() - (MAX_AGE_DAYS * 24 * 60 * 60 * 1000);
+    var kept = arr.filter(function(o){ return o.savedAt && o.savedAt >= cutoff; });
+    if (kept.length !== arr.length) persistSavedOrders(kept);
+    return kept;
+  }
+
+  function snapshotCurrentOrder(){
+    var cards = cardsContainer.querySelectorAll('.design-card');
+    var rows = [];
+    cards.forEach(function(c){ rows.push(c._getRaw()); });
+    return {
+      id: currentOrderId,
+      refNo: $('orderNo').value.trim(),
+      clientName: $('clientName').value.trim(),
+      waNumber: $('waNumber').value.trim(),
+      orderDate: $('orderDate').textContent.trim(),
+      paidAmount: $('paidAmount').value,
+      comments: $('comments').value,
+      rows: rows,
+      savedAt: Date.now()
+    };
+  }
+
+  function hasMeaningfulContent(snap){
+    if (snap.clientName) return true;
+    for (var i = 0; i < snap.rows.length; i++){
+      if (snap.rows[i].design || snap.rows[i].gross) return true;
+    }
+    return false;
+  }
+
+  function autosave(){
+    var snap = snapshotCurrentOrder();
+    if (!hasMeaningfulContent(snap)) return;
+    var arr = loadSavedOrders();
+    var idx = -1;
+    for (var i = 0; i < arr.length; i++){ if (arr[i].id === snap.id){ idx = i; break; } }
+    if (idx > -1) arr[idx] = snap; else arr.unshift(snap);
+    persistSavedOrders(arr);
+    renderSavedBar();
+  }
+
+  function renderSavedBar(){
+    var arr = loadSavedOrders();
+    $('savedCount').textContent = arr.length;
+  }
+
+  function renderSavedList(){
+    var arr = loadSavedOrders().sort(function(a, b){ return b.savedAt - a.savedAt; });
+    var listEl = $('savedList');
+    if (arr.length === 0){
+      listEl.innerHTML = '<div class="empty-saved">No saved orders yet.</div>';
+      return;
+    }
+    listEl.innerHTML = '';
+    arr.forEach(function(o){
+      var validRowCount = o.rows.filter(function(r){ return r.design && r.gross > 0; }).length;
+      var item = document.createElement('div');
+      item.className = 'saved-item';
+      var savedWhen = new Date(o.savedAt).toLocaleString('en-IN', { day:'numeric', month:'short', hour:'numeric', minute:'2-digit', hour12:true });
+      item.innerHTML =
+        '<div class="top"><span>' + escapeHtml(o.refNo || '-') + '</span><span>' + validRowCount + ' design(s)</span></div>' +
+        '<div class="meta2">' + escapeHtml(o.clientName || 'No client name') + ' &middot; saved ' + savedWhen + '</div>' +
+        '<div class="row-actions">' +
+          '<button class="load-btn" type="button" data-id="' + o.id + '">Load</button>' +
+          '<button class="del-btn" type="button" data-id="' + o.id + '">Delete</button>' +
+        '</div>';
+      listEl.appendChild(item);
+    });
+    listEl.querySelectorAll('.load-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){ loadOrderById(btn.getAttribute('data-id')); });
+    });
+    listEl.querySelectorAll('.del-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        if (!confirm('Delete this saved order? This cannot be undone.')) return;
+        var arr2 = loadSavedOrders().filter(function(o){ return o.id !== btn.getAttribute('data-id'); });
+        persistSavedOrders(arr2);
+        renderSavedList();
+        renderSavedBar();
+      });
+    });
+  }
+
+  function loadOrderById(id){
+    var arr = loadSavedOrders();
+    var found = null;
+    for (var i = 0; i < arr.length; i++){ if (arr[i].id === id){ found = arr[i]; break; } }
+    if (!found) return;
+    currentOrderId = found.id;
+    $('orderNo').value = (found.refNo || '').toUpperCase();
+    $('clientName').value = (found.clientName || '').toUpperCase();
+    $('waNumber').value = found.waNumber || '';
+    $('paidAmount').value = found.paidAmount || '';
+    $('comments').value = found.comments || '';
+    $('orderDate').textContent = found.orderDate || nowString();
+    cardsContainer.innerHTML = '';
+    cardIndex = 0;
+    if (found.rows.length === 0){
+      addCard();
+    } else {
+      found.rows.forEach(function(r){
+        var card = makeCard(r);
+        cardsContainer.appendChild(card);
+      });
+      cardIndex = found.rows.length;
+    }
+    recomputeAll();
+    closeSavedModal();
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  function openSavedModal(){ renderSavedList(); $('savedModal').style.display = 'flex'; }
+  function closeSavedModal(){ $('savedModal').style.display = 'none'; }
+  $('viewSavedBtn').addEventListener('click', openSavedModal);
+  $('closeSavedBtn').addEventListener('click', closeSavedModal);
+  $('savedModal').addEventListener('click', function(e){ if (e.target === $('savedModal')) closeSavedModal(); });
+
+  // ---------- Design cards ----------
+  function makeCard(prefill){
     cardIndex++;
     var card = document.createElement('div');
     card.className = 'design-card';
@@ -610,6 +862,13 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
     var idx = document.createElement('span');
     idx.className = 'idx';
     idx.textContent = 'Design ' + cardIndex;
+
+    var btnGroup = document.createElement('div');
+    btnGroup.className = 'btn-group';
+    var cpBtn = document.createElement('button');
+    cpBtn.type = 'button';
+    cpBtn.className = 'cp-btn';
+    cpBtn.textContent = '+ CP';
     var rmBtn = document.createElement('button');
     rmBtn.type = 'button';
     rmBtn.className = 'rm-btn';
@@ -618,12 +877,16 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
       card.parentNode.removeChild(card);
       renumber();
       recomputeAll();
+      autosave();
     });
+    btnGroup.appendChild(cpBtn);
+    btnGroup.appendChild(rmBtn);
+
     head.appendChild(idx);
-    head.appendChild(rmBtn);
+    head.appendChild(btnGroup);
     card.appendChild(head);
 
-    function field(container, labelText, placeholder, inputmode, enterHint){
+    function field(container, labelText, placeholder, inputmode, value){
       var wrap = document.createElement('div');
       var lbl = document.createElement('label');
       lbl.textContent = labelText;
@@ -631,7 +894,8 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
       inp.type = 'text';
       inp.inputMode = inputmode;
       inp.placeholder = placeholder;
-      inp.setAttribute('enterkeyhint', enterHint || 'next');
+      inp.setAttribute('enterkeyhint', 'next');
+      if (value !== undefined && value !== null && value !== '') inp.value = value;
       wrap.appendChild(lbl);
       wrap.appendChild(inp);
       container.appendChild(wrap);
@@ -640,15 +904,17 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
 
     var row1 = document.createElement('div');
     row1.className = 'grid3';
-    var designInp = field(row1, 'Design no.', 'e.g. SA20', 'text');
-    var qtyInp = field(row1, 'Qty', '1', 'numeric');
-    var touchInp = field(row1, 'Touch %', '0', 'decimal');
+    var designInp = field(row1, 'Design no.', 'SA20', 'text', prefill && prefill.design);
+    designInp.className = 'force-upper';
+    if (designInp.value) designInp.value = designInp.value.toUpperCase();
+    var qtyInp = field(row1, 'Qty', '1', 'numeric', prefill && prefill.qty);
+    var touchInp = field(row1, 'Touch %', '0', 'decimal', prefill && prefill.touch);
     card.appendChild(row1);
 
     var row2 = document.createElement('div');
     row2.className = 'grid2';
-    var grossInp = field(row2, 'Gross wt (g)', '0.00', 'decimal');
-    var labourInp = field(row2, 'Labour (₹/pc)', '0', 'decimal');
+    var grossInp = field(row2, 'Gross wt (g)', '0.00', 'decimal', prefill && prefill.gross);
+    var labourInp = field(row2, 'Labour (₹/pc)', '0', 'decimal', prefill && prefill.labour);
     card.appendChild(row2);
 
     var summary = document.createElement('div');
@@ -656,19 +922,64 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
     summary.innerHTML = '<span>Net: <b class="net">0.000 g</b></span><span>Fine: <b class="fine">0.000 g</b></span><span>Labour: <b class="lab">₹0.00</b></span>';
     card.appendChild(summary);
 
+    var cpInp = null;
+    var hasCp = false;
+
+    function addCpField(cpValue){
+      if (hasCp) return;
+      var wrap = document.createElement('div');
+      var lbl = document.createElement('label');
+      lbl.textContent = 'CP wt (g)';
+      cpInp = document.createElement('input');
+      cpInp.type = 'text';
+      cpInp.inputMode = 'decimal';
+      cpInp.placeholder = '0.00';
+      cpInp.setAttribute('enterkeyhint', 'next');
+      if (cpValue) cpInp.value = cpValue;
+      wrap.appendChild(lbl);
+      wrap.appendChild(cpInp);
+      row2.insertBefore(wrap, labourInp.parentNode);
+      row2.classList.remove('grid2');
+      row2.classList.add('grid3cp');
+      cpInp.addEventListener('input', recompute);
+      hasCp = true;
+      cpBtn.textContent = '\u2212 CP';
+      recompute();
+    }
+    function removeCpField(){
+      if (!hasCp) return;
+      row2.removeChild(cpInp.parentNode);
+      row2.classList.remove('grid3cp');
+      row2.classList.add('grid2');
+      cpInp = null;
+      hasCp = false;
+      cpBtn.textContent = '+ CP';
+      recompute();
+    }
+    cpBtn.addEventListener('click', function(){
+      if (hasCp) removeCpField(); else addCpField();
+      autosave();
+    });
+
+    if (prefill && prefill.hasCp) addCpField(prefill.cpWt);
+
     function recompute(){
       var gross = numVal(grossInp);
       var qty = numVal(qtyInp);
       var labour = numVal(labourInp);
       var touch = numVal(touchInp);
-      var netWt = gross * qty;
+      var cpWt = hasCp ? numVal(cpInp) : 0;
+      var effectiveGross = gross + cpWt;
+      var netWt = effectiveGross * qty;
       var fineWt = netWt * touch / 100;
       var totalLabour = qty * labour;
       summary.querySelector('.net').textContent = fmtWt(netWt) + ' g';
       summary.querySelector('.fine').textContent = fmtWt(fineWt) + ' g';
       summary.querySelector('.lab').textContent = fmtMoney(totalLabour);
       recomputeAll();
+      autosave();
     }
+    designInp.addEventListener('input', function(){ forceUppercase(designInp); });
     [designInp, grossInp, qtyInp, labourInp, touchInp].forEach(function(inp){
       inp.addEventListener('input', recompute);
     });
@@ -678,17 +989,31 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
       var qty = numVal(qtyInp);
       var labour = numVal(labourInp);
       var touch = numVal(touchInp);
+      var cpWt = hasCp ? numVal(cpInp) : 0;
+      var effectiveGross = gross + cpWt;
       return {
         design: designInp.value.trim(),
         gross: gross, qty: qty, labour: labour, touch: touch,
-        netWt: gross * qty,
-        fineWt: (gross * qty) * touch / 100,
+        pdfGrossWt: effectiveGross,
+        netWt: effectiveGross * qty,
+        fineWt: (effectiveGross * qty) * touch / 100,
         totalLabour: qty * labour
       };
     };
+    card._getRaw = function(){
+      return {
+        design: designInp.value.trim(),
+        gross: numVal(grossInp),
+        qty: qtyInp.value,
+        labour: labourInp.value,
+        touch: touchInp.value,
+        hasCp: hasCp,
+        cpWt: hasCp ? cpInp.value : ''
+      };
+    };
     card._focusFirst = function(){ designInp.focus(); };
-    card._recompute = recompute;
 
+    recompute();
     return card;
   }
 
@@ -715,18 +1040,23 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
     $('fineDue').textContent = fmtWt(totFine) + ' g';
   }
 
-  function addCard(){
-    var card = makeCard();
+  function addCard(prefill){
+    var card = makeCard(prefill);
     cardsContainer.appendChild(card);
     recomputeAll();
-    card._focusFirst();
+    if (!prefill) card._focusFirst();
+    return card;
   }
 
-  $('addRowBtn').addEventListener('click', addCard);
+  $('addRowBtn').addEventListener('click', function(){ addCard(); autosave(); });
   $('paidAmount').setAttribute('enterkeyhint', 'done');
   $('orderNo').setAttribute('enterkeyhint', 'next');
   $('clientName').setAttribute('enterkeyhint', 'next');
-  $('paidAmount').addEventListener('input', recomputeAll);
+  $('paidAmount').addEventListener('input', function(){ recomputeAll(); autosave(); });
+  $('orderNo').addEventListener('input', function(){ forceUppercase($('orderNo')); autosave(); });
+  $('clientName').addEventListener('input', function(){ forceUppercase($('clientName')); autosave(); });
+  $('waNumber').addEventListener('input', function(){ digitsOnly($('waNumber'), 10); autosave(); });
+  $('comments').addEventListener('input', autosave);
 
   document.addEventListener('keydown', function(e){
     if (e.key !== 'Enter') return;
@@ -753,21 +1083,65 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
     var rows = [];
     cards.forEach(function(c){
       var d = c._getData();
-      if (d.design && d.gross > 0) rows.push(d);
+      if (d.design && d.gross > 0 && d.qty > 0 && d.touch > 0 && d.labour > 0) rows.push(d);
     });
     return rows;
   }
 
-  $('pdfBtn').addEventListener('click', function(){
+  function validationErrors(){
     var rows = getValidRows();
-    if (rows.length === 0){
-      showWarn('Add at least one design (with design no. and gross weight) before generating the PDF.');
+    var missing = [];
+    if (!$('orderNo').value.trim()) missing.push('reference no.');
+    if (!$('clientName').value.trim()) missing.push('client name');
+    if ($('waNumber').value.trim().length !== 10) missing.push('a valid 10-digit customer WhatsApp number');
+    if (rows.length === 0) missing.push('at least one fully-filled design (design no., qty, touch %, gross wt. and labour)');
+    return { rows: rows, missing: missing };
+  }
+
+  $('pdfBtn').addEventListener('click', function(){
+    var check = validationErrors();
+    if (check.missing.length){
+      showWarn('Please add ' + check.missing.join(', ') + ' before generating the PDF.');
       return;
     }
-    generatePdf(rows);
+    autosave();
+    var doc = buildPdfDoc(check.rows);
+    doc.save(pdfFileName());
   });
 
-  function generatePdf(rows){
+  $('waShareBtn').addEventListener('click', function(){
+    var check = validationErrors();
+    if (check.missing.length){
+      showWarn('Please add ' + check.missing.join(', ') + ' before sharing the PDF.');
+      return;
+    }
+    autosave();
+    var doc = buildPdfDoc(check.rows);
+    var filename = pdfFileName();
+
+    var blob = doc.output('blob');
+    var file = new File([blob], filename, { type: 'application/pdf' });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })){
+      navigator.share({
+        files: [file],
+        title: 'Order Confirmation',
+        text: 'Order confirmation for ' + ($('clientName').value.trim() || 'customer')
+      }).catch(function(){
+        doc.save(filename);
+      });
+    } else {
+      doc.save(filename);
+      showWarn('Sharing isn\'t supported on this device — the PDF has been downloaded instead.');
+    }
+  });
+
+  function pdfFileName(){
+    var fileOrderNo = ($('orderNo').value.trim() || 'order').replace(/[^a-z0-9-]/gi, '_');
+    return 'Order-Confirmation-' + fileOrderNo + '.pdf';
+  }
+
+  function buildPdfDoc(rows){
     var jsPDF = window.jspdf.jsPDF;
     var doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
     doc.addFileToVFS('Lexend-Regular.ttf', LEXEND_400_BASE64);
@@ -807,7 +1181,7 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
     var orderNo = $('orderNo').value.trim() || '-';
     var dateStr = $('orderDate').textContent.trim();
     var clientName = $('clientName').value.trim() || '-';
-    doc.text('Order No: ' + orderNo, marginX, y);
+    doc.text('Reference No: ' + orderNo, marginX, y);
     doc.text('Date & Time: ' + dateStr, pageW - marginX, y, { align: 'right' });
     y += 6;
     doc.text('Client Name: ' + clientName, marginX, y);
@@ -876,7 +1250,7 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
       }
       var vals = [
         r.design,
-        fmtWt(r.gross),
+        fmtWt(r.pdfGrossWt) + (r.pdfGrossWt !== r.gross ? '*' : ''),
         r.qty,
         fmtMoneyPdf(r.labour),
         r.touch,
@@ -897,6 +1271,16 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
     var totalsVals = ['Totals', '', totQty, '', '', '', fmtWt(totFine) + ' g', fmtMoneyPdf(totLabour)];
     y = drawDataRow(y, totalsVals, true);
 
+    var anyCp = rows.some(function(r){ return r.pdfGrossWt !== r.gross; });
+    if (anyCp){
+      y += 4;
+      doc.setFont('Lexend', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(107, 100, 85);
+      doc.text('* Gross Wt includes an added charm/casting piece weight.', marginX, y);
+      doc.setTextColor(0, 0, 0);
+    }
+
     y += 8;
     var paid = numVal($('paidAmount'));
     doc.setFont('Lexend', 'normal');
@@ -908,6 +1292,24 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
     y += 6;
     doc.text('Total fine wt. due: ' + fmtWt(totFine) + ' g', marginX, y);
     y += 9;
+
+    var comments = $('comments').value.trim();
+    if (comments){
+      doc.setFont('Lexend', 'bold');
+      doc.setFontSize(9.5);
+      doc.setTextColor(28, 26, 22);
+      doc.text('Comments:', marginX, y);
+      y += 5;
+      doc.setFont('Lexend', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(60, 56, 48);
+      var wrapped = doc.splitTextToSize(comments, pageW - marginX * 2);
+      wrapped.forEach(function(line){
+        doc.text(line, marginX, y);
+        y += 4.5;
+      });
+      y += 4;
+    }
 
     doc.setFont('Lexend', 'normal');
     doc.setFontSize(8.5);
@@ -927,23 +1329,29 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
     doc.setTextColor(28, 26, 22);
     doc.text('Thank you for your order!', pageW / 2, y, { align: 'center' });
 
-    var fileOrderNo = ($('orderNo').value.trim() || 'order').replace(/[^a-z0-9-]/gi, '_');
-    doc.save('Order-Confirmation-' + fileOrderNo + '.pdf');
+    return doc;
   }
 
   $('newBtn').addEventListener('click', function(){
     var cards = cardsContainer.querySelectorAll('.design-card');
     if (cards.length && !confirm('Start a new order? Current entries will be cleared.')) return;
+    autosave();
     cardsContainer.innerHTML = '';
     cardIndex = 0;
-    $('orderNo').value = '';
+    sessionOrderCount++;
+    currentOrderId = newOrderId();
+    setRefNo();
     $('clientName').value = '';
+    $('waNumber').value = '';
     $('paidAmount').value = '';
+    $('comments').value = '';
     setDateNow();
     addCard();
     recomputeAll();
   });
 
+  cleanupOldOrders();
+  renderSavedBar();
   addCard();
 })();
 
