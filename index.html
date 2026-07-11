@@ -69,6 +69,8 @@
     width:100%;border:1px solid var(--line-strong);border-radius:6px;background:#fff;
     color:var(--ink);font-size:14.5px;padding:9px 10px;
   }
+  .meta input.invalid{border-color:var(--danger);}
+  .field-error{color:var(--danger);font-size:11.5px;margin:5px 0 0;line-height:1.4;}
   .readonly-field{
     display:block;font-size:14.5px;color:var(--ink);padding:9px 10px;
     background:#f1eee5;border:1px solid var(--line);border-radius:6px;
@@ -81,7 +83,10 @@
     padding:12px;margin-bottom:10px;position:relative;
   }
   .card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
-  .card-head .idx{font-size:12px;font-weight:700;color:var(--ink-dim);letter-spacing:.04em;text-transform:uppercase;}
+  .card-head .idx{
+    font-size:12.5px;font-weight:700;color:#fff;letter-spacing:.04em;text-transform:uppercase;
+    background:var(--accent);border-radius:5px;padding:4px 10px;display:inline-block;
+  }
   .card-head .btn-group{display:flex;gap:12px;align-items:center;}
   .rm-btn{background:none;border:none;color:var(--danger);font-size:13px;font-weight:600;cursor:pointer;padding:2px 4px;}
   .cp-btn{background:none;border:1px solid var(--accent);color:var(--accent);font-size:11.5px;font-weight:700;cursor:pointer;padding:3px 8px;border-radius:5px;}
@@ -123,7 +128,6 @@
   .saved-item .del-btn{background:none;color:var(--danger);border-color:var(--danger);}
   .empty-saved{text-align:center;color:var(--ink-dim);font-size:13px;padding:16px 0;}
 
-  .field-full{margin-bottom:8px;}
   .grid3{display:grid;grid-template-columns:1.5fr 0.8fr 1fr;gap:8px;margin-bottom:8px;}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
   .design-card label{display:block;font-size:11px;color:var(--ink-dim);margin-bottom:3px;}
@@ -132,6 +136,8 @@
     color:var(--ink);font-size:14.5px;padding:9px 10px;
   }
   .design-card input:focus{outline:none;border-color:var(--accent);}
+  .design-card input:disabled{background:#f1eee5;opacity:0.7;}
+  .design-card.locked .rm-btn, .design-card.locked .cp-btn{opacity:0.4;pointer-events:none;}
 
   .card-summary{
     border-top:1px dashed var(--line-strong);margin-top:10px;padding-top:9px;
@@ -143,6 +149,7 @@
     width:100%;background:var(--paper-2);border:1.5px dashed var(--line-strong);
     color:var(--accent);border-radius:8px;padding:12px;font-size:14.5px;font-weight:700;cursor:pointer;
   }
+  .add-row-btn:disabled{opacity:0.5;}
 
   .totals-card{
     background:#efeadf;border:1px solid var(--line-strong);border-radius:10px;
@@ -159,12 +166,28 @@
   }
   .t-row.balance{background:#efeadf;border-radius:8px;padding:9px 10px;font-weight:700;font-size:15px;color:var(--ink);}
 
-  .notes-static{margin-top:16px;padding-top:10px;border-top:1px solid var(--line);}
-  .notes-static p{font-size:11.5px;color:var(--ink-dim);margin:2px 0;line-height:1.5;}
-
-  .thank-you{
-    text-align:center;font-size:14.5px;font-weight:500;color:var(--ink);
-    margin:16px 0 0;padding-top:12px;border-top:1px solid var(--line);
+  .promo-card{margin-top:14px;}
+  .promo-card label{display:block;font-size:11.5px;color:var(--ink-dim);margin-bottom:6px;}
+  .promo-option{
+    display:flex;justify-content:space-between;align-items:center;
+    background:var(--paper-2);border:1px solid var(--line-strong);border-radius:8px;
+    padding:9px 12px;margin-bottom:8px;
+  }
+  .promo-option.active{border-color:#2f9e58;background:#eef8f1;}
+  .promo-option-name{font-size:14px;font-weight:700;color:var(--ink);letter-spacing:.02em;}
+  .promo-select-btn{
+    background:var(--accent);color:#fff;border:none;border-radius:6px;
+    padding:7px 16px;font-size:13px;font-weight:700;cursor:pointer;
+  }
+  .promo-select-btn:disabled{opacity:0.4;}
+  .promo-applied{
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+    background:#e4f3e9;border:1px solid #2f9e58;border-radius:8px;
+    padding:9px 12px;margin-top:8px;font-size:12.5px;color:#1c1a16;
+  }
+  .promo-applied button{
+    background:none;border:1px solid var(--danger);color:var(--danger);
+    border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:700;cursor:pointer;
   }
 
   .warn-msg{
@@ -191,6 +214,7 @@
     font-family:inherit;line-height:1.5;
   }
   .comments-box textarea:focus{outline:none;border-color:var(--accent);}
+  .comments-box .comments-hint{font-size:10.5px;color:var(--ink-dim);font-style:italic;margin:6px 0 0;line-height:1.4;}
 
 </style>
 </head>
@@ -217,11 +241,16 @@
       <div class="item full"><label>Client name</label><input type="text" id="clientName" class="force-upper" placeholder="Client name" enterkeyhint="next"></div>
     </div>
     <div class="meta">
-      <div class="item full"><label>Customer WhatsApp no.</label><input type="tel" inputmode="numeric" id="waNumber" placeholder="10-digit number" maxlength="10" enterkeyhint="next"></div>
+      <div class="item full">
+        <label>Customer WhatsApp no.</label>
+        <input type="tel" inputmode="numeric" id="waNumber" placeholder="10-digit number" maxlength="10" enterkeyhint="next">
+        <p class="field-error" id="waNumberError" style="display:none;">Please enter a valid 10-digit number.</p>
+      </div>
     </div>
 
     <div class="section-label">Designs</div>
     <div id="cardsContainer"></div>
+    <div class="warn-msg" id="rowWarnMsg" style="display:none;"></div>
     <button class="add-row-btn" id="addRowBtn">+ Add design row</button>
 
     <div class="totals-card">
@@ -230,9 +259,30 @@
       <div class="t-row total"><span>Total labour</span><span id="totLabour">₹0.00</span></div>
     </div>
 
+    <div class="promo-card">
+      <label>Promo codes</label>
+      <div class="promo-option" data-code="SILVARA100">
+        <span class="promo-option-name">SILVARA100</span>
+        <button type="button" class="promo-select-btn" data-code="SILVARA100">Select</button>
+      </div>
+      <div class="promo-option" data-code="SILVARA200">
+        <span class="promo-option-name">SILVARA200</span>
+        <button type="button" class="promo-select-btn" data-code="SILVARA200">Select</button>
+      </div>
+      <div class="promo-option" data-code="SILVARA333">
+        <span class="promo-option-name">SILVARA333</span>
+        <button type="button" class="promo-select-btn" data-code="SILVARA333">Select</button>
+      </div>
+      <div class="warn-msg" id="promoWarnMsg" style="display:none;"></div>
+      <div class="promo-applied" id="promoApplied" style="display:none;">
+        <span id="promoAppliedText"></span>
+        <button id="promoRemoveBtn" type="button">Remove</button>
+      </div>
+    </div>
+
     <div class="paid-card">
       <label>Paid amount (advance received)</label>
-      <input type="text" inputmode="decimal" id="paidAmount" placeholder="0">
+      <input type="text" inputmode="numeric" id="paidAmount" placeholder="0">
       <div class="t-row balance"><span>Balance labour due</span><span id="balanceDue">₹0.00</span></div>
       <div class="t-row balance" style="margin-top:8px;"><span>Total fine wt. due</span><span id="fineDue">0.00 g</span></div>
     </div>
@@ -240,14 +290,8 @@
     <div class="comments-box">
       <label>Comments (optional)</label>
       <textarea id="comments"></textarea>
+      <p class="comments-hint">All comments will be included in the order confirmation PDF.</p>
     </div>
-
-    <div class="notes-static">
-      <p>- Labour payable in INR at order time.</p>
-      <p>- Silver value will be calculated at delivery rate based on fine weight.</p>
-    </div>
-
-    <p class="thank-you">Thank you for your order!</p>
   </div>
 
   <div class="warn-msg" id="warnMsg" style="display:none;"></div>
@@ -659,11 +703,18 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
   var BIZ_TAGLINE = 'Manufacturer & Wholesaler of Najariya, Anklets & Silver Jewellery';
   var BIZ_PHONE = '+91 12345 67890';
   var NOTE_LINES = [
-    'Labour payable in INR at order time.',
-    'Silver value will be calculated at delivery rate based on fine weight.'
+    'Silver value will be calculated at delivery rate based on fine weight.',
+    'Payment will be required to pay at delivery time.'
   ];
   var STORAGE_KEY = 'silvara_saved_orders_v1';
   var MAX_AGE_DAYS = 3;
+
+  var PROMO_TIERS = [
+    { code: 'SILVARA100', min: 100, max: 199.99, touchOff: 2, labourOffPct: 8 },
+    { code: 'SILVARA200', min: 200, max: 332.99, touchOff: 5, labourOffPct: 20 },
+    { code: 'SILVARA333', min: 333, max: Infinity, touchOff: 8, labourOffPct: 40 }
+  ];
+  var promoState = null;
 
   function fmtWt(v){ return (Math.round(v*1000)/1000).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:3}); }
   function fmtMoney(v){ return '₹' + (Math.round(v*100)/100).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}); }
@@ -682,6 +733,34 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
   function digitsOnly(input, maxLen){
     var cleaned = input.value.replace(/\D/g, '').slice(0, maxLen);
     if (cleaned !== input.value) input.value = cleaned;
+  }
+
+  function numericSanitize(input, allowDecimal, maxDecimals){
+    var start = input.selectionStart, end = input.selectionEnd;
+    var v = input.value;
+    var cleaned = allowDecimal ? v.replace(/[^0-9.]/g, '') : v.replace(/[^0-9]/g, '');
+    if (allowDecimal){
+      var firstDot = cleaned.indexOf('.');
+      if (firstDot !== -1){
+        cleaned = cleaned.slice(0, firstDot + 1) + cleaned.slice(firstDot + 1).replace(/\./g, '');
+        if (maxDecimals !== undefined){
+          var decimals = cleaned.slice(firstDot + 1);
+          if (decimals.length > maxDecimals) cleaned = cleaned.slice(0, firstDot + 1 + maxDecimals);
+        }
+      }
+    }
+    if (cleaned !== v){
+      var diff = v.length - cleaned.length;
+      input.value = cleaned;
+      try { input.setSelectionRange(Math.max(start - diff, 0), Math.max(end - diff, 0)); } catch (e){}
+    }
+  }
+
+  function clampRange(input, min, max){
+    var v = parseFloat(input.value);
+    if (isNaN(v) || input.value.trim() === '') return;
+    if (v < min) input.value = String(min);
+    if (v > max) input.value = String(max);
   }
 
   var SALESMAN_PREFIX = 'SO';
@@ -747,6 +826,7 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
       orderDate: $('orderDate').textContent.trim(),
       paidAmount: $('paidAmount').value,
       comments: $('comments').value,
+      promoState: promoState,
       rows: rows,
       savedAt: Date.now()
     };
@@ -835,6 +915,8 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
       });
       cardIndex = found.rows.length;
     }
+    promoState = found.promoState || null;
+    renderPromoApplied();
     recomputeAll();
     closeSavedModal();
   }
@@ -876,6 +958,7 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
     rmBtn.addEventListener('click', function(){
       card.parentNode.removeChild(card);
       renumber();
+      cancelPromo();
       recomputeAll();
       autosave();
     });
@@ -907,14 +990,19 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
     var designInp = field(row1, 'Design no.', 'SA20', 'text', prefill && prefill.design);
     designInp.className = 'force-upper';
     if (designInp.value) designInp.value = designInp.value.toUpperCase();
-    var qtyInp = field(row1, 'Qty', '1', 'numeric', prefill && prefill.qty);
+    var qtyInp = field(row1, 'Qty', '1.0', 'decimal', prefill && prefill.qty);
+    qtyInp.addEventListener('input', function(){ numericSanitize(qtyInp, true, 1); });
     var touchInp = field(row1, 'Touch %', '0', 'decimal', prefill && prefill.touch);
+    touchInp.addEventListener('input', function(){ numericSanitize(touchInp, true, 1); });
+    touchInp.addEventListener('blur', function(){ clampRange(touchInp, 0, 100); });
     card.appendChild(row1);
 
     var row2 = document.createElement('div');
     row2.className = 'grid2';
     var grossInp = field(row2, 'Gross wt (g)', '0.00', 'decimal', prefill && prefill.gross);
-    var labourInp = field(row2, 'Labour (₹/pc)', '0', 'decimal', prefill && prefill.labour);
+    grossInp.addEventListener('input', function(){ numericSanitize(grossInp, true, 2); });
+    var labourInp = field(row2, 'Labour (₹/pc)', '0', 'numeric', prefill && prefill.labour);
+    labourInp.addEventListener('input', function(){ numericSanitize(labourInp, false); });
     card.appendChild(row2);
 
     var summary = document.createElement('div');
@@ -941,7 +1029,8 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
       row2.insertBefore(wrap, labourInp.parentNode);
       row2.classList.remove('grid2');
       row2.classList.add('grid3cp');
-      cpInp.addEventListener('input', recompute);
+      cpInp.addEventListener('input', function(){ numericSanitize(cpInp, true, 2); });
+      cpInp.addEventListener('input', function(){ cancelPromo(); recompute(); });
       hasCp = true;
       cpBtn.textContent = '\u2212 CP';
       recompute();
@@ -958,6 +1047,7 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
     }
     cpBtn.addEventListener('click', function(){
       if (hasCp) removeCpField(); else addCpField();
+      cancelPromo();
       autosave();
     });
 
@@ -980,8 +1070,9 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
       autosave();
     }
     designInp.addEventListener('input', function(){ forceUppercase(designInp); });
+    designInp.addEventListener('blur', function(){ checkDuplicateDesign(card, designInp); });
     [designInp, grossInp, qtyInp, labourInp, touchInp].forEach(function(inp){
-      inp.addEventListener('input', recompute);
+      inp.addEventListener('input', function(){ cancelPromo(); recompute(); });
     });
 
     card._getData = function(){
@@ -1012,6 +1103,15 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
       };
     };
     card._focusFirst = function(){ designInp.focus(); };
+    card._isComplete = function(){
+      var gross = numVal(grossInp);
+      var qty = numVal(qtyInp);
+      var labour = numVal(labourInp);
+      var touch = numVal(touchInp);
+      var designOk = !!designInp.value.trim();
+      var cpOk = !hasCp || numVal(cpInp) > 0;
+      return designOk && gross > 0 && qty > 0 && touch > 0 && labour > 0 && cpOk;
+    };
 
     recompute();
     return card;
@@ -1036,9 +1136,122 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
     $('totFine').textContent = fmtWt(totFine) + ' g';
     $('totLabour').textContent = fmtMoney(totLabour);
     var paid = numVal($('paidAmount'));
-    $('balanceDue').textContent = fmtMoney(totLabour - paid);
-    $('fineDue').textContent = fmtWt(totFine) + ' g';
+    var effectiveFine = promoState ? promoState.newFine : totFine;
+    var effectiveLabour = promoState ? promoState.newLabour : totLabour;
+    $('balanceDue').textContent = fmtMoney(effectiveLabour - paid);
+    $('fineDue').textContent = fmtWt(effectiveFine) + ' g';
   }
+
+  function getRawTotals(){
+    var cards = cardsContainer.querySelectorAll('.design-card');
+    var qty = 0, fine = 0, labour = 0;
+    cards.forEach(function(c){
+      if (!c._isComplete()) return;
+      var d = c._getData();
+      qty += d.qty;
+      fine += d.fineWt;
+      labour += d.totalLabour;
+    });
+    return { qty: qty, fine: fine, labour: labour };
+  }
+
+  function setCardsLocked(locked){
+    var cards = cardsContainer.querySelectorAll('.design-card');
+    cards.forEach(function(c){
+      c.classList.toggle('locked', locked);
+      c.querySelectorAll('input').forEach(function(i){ i.disabled = locked; });
+    });
+    $('addRowBtn').disabled = locked;
+  }
+
+  function setPromoButtonsDisabled(disabled){
+    document.querySelectorAll('.promo-select-btn').forEach(function(b){ b.disabled = disabled; });
+  }
+
+  function showPromoWarn(msg){
+    var el = $('promoWarnMsg');
+    el.textContent = msg;
+    el.style.display = 'block';
+    setTimeout(function(){ el.style.display = 'none'; }, 9000);
+  }
+
+  function renderPromoApplied(){
+    document.querySelectorAll('.promo-option').forEach(function(row){
+      row.classList.toggle('active', !!promoState && row.getAttribute('data-code') === promoState.code);
+    });
+    if (!promoState){
+      $('promoApplied').style.display = 'none';
+      setPromoButtonsDisabled(false);
+      return;
+    }
+    $('promoAppliedText').textContent = promoState.code + ' applied — ' + promoState.touchOff + '% touch & ' + promoState.labourOffPct + '% labour off';
+    $('promoApplied').style.display = 'flex';
+    setPromoButtonsDisabled(true);
+  }
+
+  function cancelPromo(silent){
+    if (!promoState) return;
+    promoState = null;
+    renderPromoApplied();
+    if (!silent) showRowWarn('Promo code was removed because a design was changed — please re-apply if needed.');
+  }
+
+  function applyPromo(tier, raw){
+    setCardsLocked(true);
+    setPromoButtonsDisabled(true);
+    setTimeout(function(){
+      var cards = cardsContainer.querySelectorAll('.design-card');
+      var newFine = 0;
+      cards.forEach(function(c){
+        if (!c._isComplete()) return;
+        var d = c._getData();
+        var newTouch = Math.max(d.touch - tier.touchOff, 0);
+        newFine += d.netWt * newTouch / 100;
+      });
+      var newLabour = raw.labour * (1 - tier.labourOffPct / 100);
+      promoState = {
+        code: tier.code,
+        touchOff: tier.touchOff,
+        labourOffPct: tier.labourOffPct,
+        originalFine: raw.fine,
+        originalLabour: raw.labour,
+        newFine: newFine,
+        newLabour: newLabour
+      };
+      setCardsLocked(false);
+      renderPromoApplied();
+      recomputeAll();
+      autosave();
+    }, 500);
+  }
+
+  document.querySelectorAll('.promo-select-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var code = btn.getAttribute('data-code');
+      var tier = null;
+      for (var i = 0; i < PROMO_TIERS.length; i++){ if (PROMO_TIERS[i].code === code){ tier = PROMO_TIERS[i]; break; } }
+      if (!tier) return;
+      var incomplete = getIncompleteDesignNumbers();
+      if (incomplete.length){
+        showPromoWarn('Please fill all fields in Design ' + incomplete.join(', ') + ' before applying a promo code.');
+        return;
+      }
+      var raw = getRawTotals();
+      var fineRounded = Math.round(raw.fine * 100) / 100;
+      if (fineRounded < tier.min || fineRounded > tier.max){
+        var rangeText = tier.max === Infinity ? (tier.min + 'g and above') : (tier.min + 'g to ' + tier.max + 'g');
+        showPromoWarn(tier.code + ' needs total fine wt of ' + rangeText + ' — current total is ' + fmtWt(raw.fine) + ' g.');
+        return;
+      }
+      applyPromo(tier, raw);
+    });
+  });
+
+  $('promoRemoveBtn').addEventListener('click', function(){
+    cancelPromo(true);
+    recomputeAll();
+    autosave();
+  });
 
   function addCard(prefill){
     var card = makeCard(prefill);
@@ -1048,14 +1261,41 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
     return card;
   }
 
-  $('addRowBtn').addEventListener('click', function(){ addCard(); autosave(); });
+  $('addRowBtn').addEventListener('click', function(){
+    var incomplete = getIncompleteDesignNumbers();
+    if (incomplete.length){
+      showRowWarn('Please fill all fields in Design ' + incomplete.join(', ') + ' before adding a new design.');
+      return;
+    }
+    cancelPromo();
+    addCard();
+    autosave();
+  });
   $('paidAmount').setAttribute('enterkeyhint', 'done');
   $('orderNo').setAttribute('enterkeyhint', 'next');
   $('clientName').setAttribute('enterkeyhint', 'next');
-  $('paidAmount').addEventListener('input', function(){ recomputeAll(); autosave(); });
+  $('paidAmount').addEventListener('input', function(){ numericSanitize($('paidAmount'), false); recomputeAll(); autosave(); });
   $('orderNo').addEventListener('input', function(){ forceUppercase($('orderNo')); autosave(); });
   $('clientName').addEventListener('input', function(){ forceUppercase($('clientName')); autosave(); });
-  $('waNumber').addEventListener('input', function(){ digitsOnly($('waNumber'), 10); autosave(); });
+  $('waNumber').addEventListener('input', function(){
+    digitsOnly($('waNumber'), 10);
+    autosave();
+    var len = $('waNumber').value.trim().length;
+    if (len === 0 || len === 10){
+      $('waNumberError').style.display = 'none';
+      $('waNumber').classList.remove('invalid');
+    }
+  });
+  $('waNumber').addEventListener('blur', function(){
+    var len = $('waNumber').value.trim().length;
+    if (len > 0 && len < 10){
+      $('waNumberError').style.display = 'block';
+      $('waNumber').classList.add('invalid');
+    } else {
+      $('waNumberError').style.display = 'none';
+      $('waNumber').classList.remove('invalid');
+    }
+  });
   $('comments').addEventListener('input', autosave);
 
   document.addEventListener('keydown', function(e){
@@ -1075,26 +1315,56 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
     var el = $('warnMsg');
     el.textContent = msg;
     el.style.display = 'block';
-    setTimeout(function(){ el.style.display = 'none'; }, 4000);
+    setTimeout(function(){ el.style.display = 'none'; }, 9000);
   }
 
-  function getValidRows(){
+  function showRowWarn(msg){
+    var el = $('rowWarnMsg');
+    el.textContent = msg;
+    el.style.display = 'block';
+    setTimeout(function(){ el.style.display = 'none'; }, 9000);
+  }
+
+  function checkDuplicateDesign(currentCard, input){
+    var val = input.value.trim();
+    if (!val) return;
+    var cards = Array.prototype.slice.call(cardsContainer.querySelectorAll('.design-card'));
+    for (var i = 0; i < cards.length; i++){
+      if (cards[i] === currentCard) continue;
+      var otherDesign = cards[i]._getData().design;
+      if (otherDesign && otherDesign === val){
+        var otherIdx = cards[i].querySelector('.idx').textContent;
+        showRowWarn('Design no. "' + val + '" already exists in ' + otherIdx + ', please verify.');
+        return;
+      }
+    }
+  }
+
+  function getIncompleteDesignNumbers(){
     var cards = cardsContainer.querySelectorAll('.design-card');
-    var rows = [];
-    cards.forEach(function(c){
-      var d = c._getData();
-      if (d.design && d.gross > 0 && d.qty > 0 && d.touch > 0 && d.labour > 0) rows.push(d);
+    var incomplete = [];
+    cards.forEach(function(c, i){
+      if (!c._isComplete()) incomplete.push(i + 1);
     });
-    return rows;
+    return incomplete;
   }
 
   function validationErrors(){
-    var rows = getValidRows();
+    var cards = cardsContainer.querySelectorAll('.design-card');
     var missing = [];
     if (!$('orderNo').value.trim()) missing.push('reference no.');
     if (!$('clientName').value.trim()) missing.push('client name');
     if ($('waNumber').value.trim().length !== 10) missing.push('a valid 10-digit customer WhatsApp number');
-    if (rows.length === 0) missing.push('at least one fully-filled design (design no., qty, touch %, gross wt. and labour)');
+    if (cards.length === 0){
+      missing.push('at least one design');
+    } else {
+      var incompleteNums = getIncompleteDesignNumbers();
+      if (incompleteNums.length){
+        missing.push('all fields filled in Design ' + incompleteNums.join(', '));
+      }
+    }
+    var rows = [];
+    cards.forEach(function(c){ if (c._isComplete()) rows.push(c._getData()); });
     return { rows: rows, missing: missing };
   }
 
@@ -1141,6 +1411,25 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
     return 'Order-Confirmation-' + fileOrderNo + '.pdf';
   }
 
+  function drawMixedLine(doc, segments, x, y, maxWidth, lineHeight){
+    var curX = x, curY = y;
+    segments.forEach(function(seg){
+      doc.setFont('Lexend', seg.bold ? 'bold' : 'normal');
+      var words = seg.text.split(' ');
+      words.forEach(function(word, idx){
+        var piece = word + (idx < words.length - 1 ? ' ' : '');
+        var w = doc.getTextWidth(piece);
+        if (curX + w > x + maxWidth && curX > x){
+          curY += lineHeight;
+          curX = x;
+        }
+        doc.text(piece, curX, curY);
+        curX += w;
+      });
+    });
+    return curY;
+  }
+
   function buildPdfDoc(rows){
     var jsPDF = window.jspdf.jsPDF;
     var doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
@@ -1181,21 +1470,23 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
     var orderNo = $('orderNo').value.trim() || '-';
     var dateStr = $('orderDate').textContent.trim();
     var clientName = $('clientName').value.trim() || '-';
+    var waNum = $('waNumber').value.trim() || '-';
     doc.text('Reference No: ' + orderNo, marginX, y);
     doc.text('Date & Time: ' + dateStr, pageW - marginX, y, { align: 'right' });
     y += 6;
     doc.text('Client Name: ' + clientName, marginX, y);
+    doc.text('WhatsApp No: ' + waNum, pageW - marginX, y, { align: 'right' });
     y += 8;
 
     var cols = [
-      { key: 'design', label: 'Design No', w: 26 },
-      { key: 'gross', label: 'Gross Wt', w: 22 },
-      { key: 'qty', label: 'Qty', w: 14 },
-      { key: 'labour', label: 'Labour', w: 22 },
-      { key: 'touch', label: 'Touch %', w: 18 },
-      { key: 'netWt', label: 'Net Wt', w: 26 },
-      { key: 'fineWt', label: 'Fine Wt', w: 26 },
-      { key: 'totalLabour', label: 'Total Lab.', w: 32 }
+      { label: 'Design No', w: 26 },
+      { label: 'Gross Wt', w: 22 },
+      { label: 'Qty', w: 14 },
+      { label: 'Labour', w: 22 },
+      { label: 'Touch %', w: 18 },
+      { label: 'Net Wt', w: 26 },
+      { label: 'Fine Wt', w: 26 },
+      { label: 'Total Lab.', w: 32 }
     ];
     var tableW = cols.reduce(function(s, c){ return s + c.w; }, 0);
     var tableX = (pageW - tableW) / 2;
@@ -1281,6 +1572,52 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
       doc.setTextColor(0, 0, 0);
     }
 
+    var effectiveFine = totFine;
+    var effectiveLabour = totLabour;
+
+    if (promoState){
+      var savedLabour = promoState.originalLabour - promoState.newLabour;
+      var savedFine = promoState.originalFine - promoState.newFine;
+
+      y += 9;
+      doc.setDrawColor(216, 210, 194);
+      doc.setLineWidth(0.3);
+      doc.line(marginX, y, pageW - marginX, y);
+      y += 7;
+
+      doc.setFont('Lexend', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(47, 158, 88);
+      doc.text(promoState.code + ' Applied', marginX, y);
+      y += 6;
+
+      doc.setFont('Lexend', 'normal');
+      doc.setFontSize(9.5);
+      doc.setTextColor(60, 56, 48);
+      var descLine = 'This order qualifies for an additional ' + promoState.touchOff + '% touch benefit and a flat ' + promoState.labourOffPct + '% discount on labour charges.';
+      var descWrapped = doc.splitTextToSize(descLine, pageW - marginX * 2);
+      descWrapped.forEach(function(line){
+        doc.text(line, marginX, y);
+        y += 4.5;
+      });
+      y += 2;
+
+      doc.setFontSize(9.5);
+      doc.setTextColor(28, 26, 22);
+      var saveSegments = [
+        { text: 'You save ', bold: false },
+        { text: fmtMoneyPdf(savedLabour), bold: true },
+        { text: ' in labour charges and ', bold: false },
+        { text: fmtWt(savedFine) + ' g', bold: true },
+        { text: ' in fine weight on this order.', bold: false }
+      ];
+      y = drawMixedLine(doc, saveSegments, marginX, y, pageW - marginX * 2, 4.5);
+      y += 4;
+
+      effectiveFine = promoState.newFine;
+      effectiveLabour = promoState.newLabour;
+    }
+
     y += 8;
     var paid = numVal($('paidAmount'));
     doc.setFont('Lexend', 'normal');
@@ -1288,9 +1625,9 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
     doc.text('Paid amount (advance): ' + fmtMoneyPdf(paid), marginX, y);
     y += 6;
     doc.setFont('Lexend', 'bold');
-    doc.text('Balance labour due: ' + fmtMoneyPdf(totLabour - paid), marginX, y);
+    doc.text('Balance labour due: ' + fmtMoneyPdf(effectiveLabour - paid), marginX, y);
     y += 6;
-    doc.text('Total fine wt. due: ' + fmtWt(totFine) + ' g', marginX, y);
+    doc.text('Total fine wt. due: ' + fmtWt(effectiveFine) + ' g', marginX, y);
     y += 9;
 
     var comments = $('comments').value.trim();
@@ -1311,6 +1648,11 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
       y += 4;
     }
 
+    doc.setFont('Lexend', 'bold');
+    doc.setFontSize(9.5);
+    doc.setTextColor(28, 26, 22);
+    doc.text('Notes:', marginX, y);
+    y += 5;
     doc.setFont('Lexend', 'normal');
     doc.setFontSize(8.5);
     doc.setTextColor(107, 100, 85);
@@ -1345,6 +1687,8 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
     $('waNumber').value = '';
     $('paidAmount').value = '';
     $('comments').value = '';
+    promoState = null;
+    renderPromoApplied();
     setDateNow();
     addCard();
     recomputeAll();
