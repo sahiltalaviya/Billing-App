@@ -36,6 +36,7 @@
     --app-bg:#e7e3d8;
   }
   *{box-sizing:border-box;}
+  button, input, textarea, select{font-family:inherit;}
   html,body{margin:0;padding:0;}
   body{
     background:var(--app-bg);
@@ -137,6 +138,8 @@
   }
   .design-card input:focus{outline:none;border-color:var(--accent);}
   .design-card input:disabled{background:#f1eee5;opacity:0.7;}
+  .design-card input.invalid{border-color:var(--danger);}
+  .card-error{color:var(--danger);font-size:11.5px;margin:8px 0 0;line-height:1.4;}
   .design-card.locked .rm-btn, .design-card.locked .cp-btn{opacity:0.4;pointer-events:none;}
 
   .card-summary{
@@ -190,18 +193,13 @@
     border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:700;cursor:pointer;
   }
 
-  .warn-msg{
-    color:#fff;background:var(--danger);border-radius:8px;padding:10px 12px;
-    font-size:13px;margin-top:14px;text-align:center;
-  }
-
   .actions{display:flex;gap:8px;margin-top:16px;}
   .actions button{
     flex:1;padding:12px 6px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;
     border:1px solid var(--line-strong);background:var(--paper-2);color:var(--ink);
   }
   .actions button.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
-  .actions button.whatsapp{background:#25D366;border-color:#25D366;color:#fff;}
+  .actions button.whatsapp{background:var(--accent);border-color:var(--accent);color:#fff;}
 
   .force-upper{text-transform:uppercase;}
   .design-card input.force-upper{text-transform:uppercase;}
@@ -234,23 +232,31 @@
     </div>
 
     <div class="meta">
-      <div class="item"><label>Reference No.</label><input type="text" id="orderNo" class="force-upper" placeholder="e.g. SO-01"></div>
+      <div class="item">
+        <label>Reference No.</label>
+        <input type="text" id="orderNo" class="force-upper" placeholder="e.g. SO-01" autocomplete="off">
+        <p class="field-error" id="orderNoError" style="display:none;">This field is required.</p>
+      </div>
       <div class="item"><label>Date &amp; time</label><span class="readonly-field" id="orderDate"></span></div>
     </div>
     <div class="meta">
-      <div class="item full"><label>Client name</label><input type="text" id="clientName" class="force-upper" placeholder="Client name" enterkeyhint="next"></div>
+      <div class="item full">
+        <label>Client name</label>
+        <input type="text" id="clientName" class="force-upper" placeholder="Client name" enterkeyhint="next" autocomplete="off">
+        <p class="field-error" id="clientNameError" style="display:none;">This field is required.</p>
+      </div>
     </div>
     <div class="meta">
       <div class="item full">
         <label>Customer WhatsApp no.</label>
-        <input type="tel" inputmode="numeric" id="waNumber" placeholder="10-digit number" maxlength="10" enterkeyhint="next">
-        <p class="field-error" id="waNumberError" style="display:none;">Please enter a valid 10-digit number.</p>
+        <input type="tel" inputmode="numeric" id="waNumber" placeholder="10-digit number" maxlength="10" enterkeyhint="next" autocomplete="off">
+        <p class="field-error" id="waNumberError" style="display:none;">Enter all 10 digits.</p>
       </div>
     </div>
 
     <div class="section-label">Designs</div>
+    <p class="field-error" id="noDesignError" style="display:none;">Add at least one design.</p>
     <div id="cardsContainer"></div>
-    <div class="warn-msg" id="rowWarnMsg" style="display:none;"></div>
     <button class="add-row-btn" id="addRowBtn">+ Add design row</button>
 
     <div class="totals-card">
@@ -273,7 +279,7 @@
         <span class="promo-option-name">SILVARA333</span>
         <button type="button" class="promo-select-btn" data-code="SILVARA333">Select</button>
       </div>
-      <div class="warn-msg" id="promoWarnMsg" style="display:none;"></div>
+      <p class="field-error" id="promoWarnMsg" style="display:none;"></p>
       <div class="promo-applied" id="promoApplied" style="display:none;">
         <span id="promoAppliedText"></span>
         <button id="promoRemoveBtn" type="button">Remove</button>
@@ -293,8 +299,6 @@
       <p class="comments-hint">All comments will be included in the order confirmation PDF.</p>
     </div>
   </div>
-
-  <div class="warn-msg" id="warnMsg" style="display:none;"></div>
 
   <div class="actions">
     <button id="newBtn">New order</button>
@@ -716,7 +720,7 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
   ];
   var promoState = null;
 
-  function fmtWt(v){ return (Math.round(v*1000)/1000).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:3}); }
+  function fmtWt(v){ return (Math.round(v*100)/100).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}); }
   function fmtMoney(v){ return '₹' + (Math.round(v*100)/100).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}); }
   function fmtMoneyPdf(v){ return 'Rs. ' + (Math.round(v*100)/100).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}); }
   function numVal(input){ var v = parseFloat(input.value); return isNaN(v) ? 0 : v; }
@@ -989,6 +993,7 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
     row1.className = 'grid3';
     var designInp = field(row1, 'Design no.', 'SA20', 'text', prefill && prefill.design);
     designInp.className = 'force-upper';
+    designInp.setAttribute('autocomplete', 'off');
     if (designInp.value) designInp.value = designInp.value.toUpperCase();
     var qtyInp = field(row1, 'Qty', '1.0', 'decimal', prefill && prefill.qty);
     qtyInp.addEventListener('input', function(){ numericSanitize(qtyInp, true, 1); });
@@ -1009,6 +1014,11 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
     summary.className = 'card-summary';
     summary.innerHTML = '<span>Net: <b class="net">0.000 g</b></span><span>Fine: <b class="fine">0.000 g</b></span><span>Labour: <b class="lab">₹0.00</b></span>';
     card.appendChild(summary);
+
+    var cardErrorEl = document.createElement('p');
+    cardErrorEl.className = 'card-error';
+    cardErrorEl.style.display = 'none';
+    card.appendChild(cardErrorEl);
 
     var cpInp = null;
     var hasCp = false;
@@ -1047,6 +1057,7 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
     }
     cpBtn.addEventListener('click', function(){
       if (hasCp) removeCpField(); else addCpField();
+      designInp.focus();
       cancelPromo();
       autosave();
     });
@@ -1054,6 +1065,7 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
     if (prefill && prefill.hasCp) addCpField(prefill.cpWt);
 
     function recompute(){
+      card._markIncomplete(false);
       var gross = numVal(grossInp);
       var qty = numVal(qtyInp);
       var labour = numVal(labourInp);
@@ -1075,6 +1087,17 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
       inp.addEventListener('input', function(){ cancelPromo(); recompute(); });
     });
 
+    labourInp.addEventListener('keydown', function(e){
+      if (e.key !== 'Enter') return;
+      var cards = cardsContainer.querySelectorAll('.design-card');
+      var isLast = cards.length > 0 && cards[cards.length - 1] === card;
+      if (isLast && card._isComplete()){
+        e.preventDefault();
+        e.stopPropagation();
+        $('addRowBtn').click();
+      }
+    });
+
     card._getData = function(){
       var gross = numVal(grossInp);
       var qty = numVal(qtyInp);
@@ -1085,6 +1108,7 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
       return {
         design: designInp.value.trim(),
         gross: gross, qty: qty, labour: labour, touch: touch,
+        cpWt: cpWt,
         pdfGrossWt: effectiveGross,
         netWt: effectiveGross * qty,
         fineWt: (effectiveGross * qty) * touch / 100,
@@ -1111,6 +1135,38 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
       var designOk = !!designInp.value.trim();
       var cpOk = !hasCp || numVal(cpInp) > 0;
       return designOk && gross > 0 && qty > 0 && touch > 0 && labour > 0 && cpOk;
+    };
+    card._getMissingFields = function(){
+      var missing = [];
+      if (!designInp.value.trim()) missing.push({ input: designInp, label: 'Design No.' });
+      if (numVal(grossInp) <= 0) missing.push({ input: grossInp, label: 'Gross Wt' });
+      if (numVal(qtyInp) <= 0) missing.push({ input: qtyInp, label: 'Qty' });
+      if (numVal(touchInp) <= 0) missing.push({ input: touchInp, label: 'Touch %' });
+      if (numVal(labourInp) <= 0) missing.push({ input: labourInp, label: 'Labour' });
+      if (hasCp && numVal(cpInp) <= 0) missing.push({ input: cpInp, label: 'CP Wt' });
+      return missing;
+    };
+    card._showCardError = function(msg){
+      cardErrorEl.textContent = msg;
+      cardErrorEl.style.display = 'block';
+    };
+    card._hideCardError = function(){
+      cardErrorEl.style.display = 'none';
+    };
+    card._markIncomplete = function(show){
+      var allInputs = [designInp, grossInp, qtyInp, touchInp, labourInp];
+      if (hasCp) allInputs.push(cpInp);
+      if (show){
+        var missing = card._getMissingFields();
+        if (missing.length){
+          missing.forEach(function(m){ m.input.classList.add('invalid'); });
+          var labels = missing.map(function(m){ return m.label; });
+          card._showCardError('Please fill ' + labels.join(', ') + ' in this design.');
+        }
+      } else {
+        allInputs.forEach(function(inp){ inp.classList.remove('invalid'); });
+        card._hideCardError();
+      }
     };
 
     recompute();
@@ -1189,11 +1245,27 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
     setPromoButtonsDisabled(true);
   }
 
+  function markIncompleteCards(){
+    var cards = cardsContainer.querySelectorAll('.design-card');
+    var incomplete = [];
+    cards.forEach(function(c, i){
+      var complete = c._isComplete();
+      c._markIncomplete(!complete);
+      if (!complete) incomplete.push(c);
+    });
+    return incomplete;
+  }
+
+  function scrollToError(el){
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
   function cancelPromo(silent){
     if (!promoState) return;
     promoState = null;
     renderPromoApplied();
-    if (!silent) showRowWarn('Promo code was removed because a design was changed — please re-apply if needed.');
+    if (!silent) showPromoWarn('Promo removed — a design was changed.');
   }
 
   function applyPromo(tier, raw){
@@ -1231,16 +1303,16 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
       var tier = null;
       for (var i = 0; i < PROMO_TIERS.length; i++){ if (PROMO_TIERS[i].code === code){ tier = PROMO_TIERS[i]; break; } }
       if (!tier) return;
-      var incomplete = getIncompleteDesignNumbers();
+      var incomplete = markIncompleteCards();
       if (incomplete.length){
-        showPromoWarn('Please fill all fields in Design ' + incomplete.join(', ') + ' before applying a promo code.');
+        scrollToError(incomplete[0]);
         return;
       }
       var raw = getRawTotals();
       var fineRounded = Math.round(raw.fine * 100) / 100;
       if (fineRounded < tier.min || fineRounded > tier.max){
-        var rangeText = tier.max === Infinity ? (tier.min + 'g and above') : (tier.min + 'g to ' + tier.max + 'g');
-        showPromoWarn(tier.code + ' needs total fine wt of ' + rangeText + ' — current total is ' + fmtWt(raw.fine) + ' g.');
+        var rangeText = tier.max === Infinity ? (tier.min + 'g+') : (tier.min + 'g–' + tier.max + 'g');
+        showPromoWarn('Needs ' + rangeText + '. You have ' + fmtWt(raw.fine) + ' g.');
         return;
       }
       applyPromo(tier, raw);
@@ -1262,9 +1334,9 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
   }
 
   $('addRowBtn').addEventListener('click', function(){
-    var incomplete = getIncompleteDesignNumbers();
+    var incomplete = markIncompleteCards();
     if (incomplete.length){
-      showRowWarn('Please fill all fields in Design ' + incomplete.join(', ') + ' before adding a new design.');
+      scrollToError(incomplete[0]);
       return;
     }
     cancelPromo();
@@ -1311,20 +1383,6 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
     }
   });
 
-  function showWarn(msg){
-    var el = $('warnMsg');
-    el.textContent = msg;
-    el.style.display = 'block';
-    setTimeout(function(){ el.style.display = 'none'; }, 9000);
-  }
-
-  function showRowWarn(msg){
-    var el = $('rowWarnMsg');
-    el.textContent = msg;
-    el.style.display = 'block';
-    setTimeout(function(){ el.style.display = 'none'; }, 9000);
-  }
-
   function checkDuplicateDesign(currentCard, input){
     var val = input.value.trim();
     if (!val) return;
@@ -1334,44 +1392,66 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
       var otherDesign = cards[i]._getData().design;
       if (otherDesign && otherDesign === val){
         var otherIdx = cards[i].querySelector('.idx').textContent;
-        showRowWarn('Design no. "' + val + '" already exists in ' + otherIdx + ', please verify.');
+        input.classList.add('invalid');
+        currentCard._showCardError('Already used in ' + otherIdx + '.');
         return;
       }
     }
   }
 
-  function getIncompleteDesignNumbers(){
-    var cards = cardsContainer.querySelectorAll('.design-card');
-    var incomplete = [];
-    cards.forEach(function(c, i){
-      if (!c._isComplete()) incomplete.push(i + 1);
-    });
-    return incomplete;
+  function clearTopFieldError(id){
+    $(id).classList.remove('invalid');
+    $(id + 'Error').style.display = 'none';
   }
 
-  function validationErrors(){
-    var cards = cardsContainer.querySelectorAll('.design-card');
-    var missing = [];
-    if (!$('orderNo').value.trim()) missing.push('reference no.');
-    if (!$('clientName').value.trim()) missing.push('client name');
-    if ($('waNumber').value.trim().length !== 10) missing.push('a valid 10-digit customer WhatsApp number');
-    if (cards.length === 0){
-      missing.push('at least one design');
-    } else {
-      var incompleteNums = getIncompleteDesignNumbers();
-      if (incompleteNums.length){
-        missing.push('all fields filled in Design ' + incompleteNums.join(', '));
-      }
+  function showTopFieldError(id, msg){
+    $(id).classList.add('invalid');
+    var el = $(id + 'Error');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  function validateForSubmit(){
+    clearTopFieldError('orderNo');
+    clearTopFieldError('clientName');
+    clearTopFieldError('waNumber');
+    $('noDesignError').style.display = 'none';
+
+    var firstErrorEl = null;
+
+    if (!$('orderNo').value.trim()){
+      showTopFieldError('orderNo', 'This field is required.');
+      firstErrorEl = firstErrorEl || $('orderNo');
     }
+    if (!$('clientName').value.trim()){
+      showTopFieldError('clientName', 'This field is required.');
+      firstErrorEl = firstErrorEl || $('clientName');
+    }
+    var waLen = $('waNumber').value.trim().length;
+    if (waLen !== 10){
+      showTopFieldError('waNumber', waLen === 0 ? 'This field is required.' : 'Enter all 10 digits.');
+      firstErrorEl = firstErrorEl || $('waNumber');
+    }
+
+    var cards = cardsContainer.querySelectorAll('.design-card');
+    if (cards.length === 0){
+      $('noDesignError').style.display = 'block';
+      firstErrorEl = firstErrorEl || $('noDesignError');
+    } else {
+      var incomplete = markIncompleteCards();
+      if (incomplete.length) firstErrorEl = firstErrorEl || incomplete[0];
+    }
+
     var rows = [];
     cards.forEach(function(c){ if (c._isComplete()) rows.push(c._getData()); });
-    return { rows: rows, missing: missing };
+
+    return { valid: !firstErrorEl, rows: rows, firstErrorEl: firstErrorEl };
   }
 
   $('pdfBtn').addEventListener('click', function(){
-    var check = validationErrors();
-    if (check.missing.length){
-      showWarn('Please add ' + check.missing.join(', ') + ' before generating the PDF.');
+    var check = validateForSubmit();
+    if (!check.valid){
+      scrollToError(check.firstErrorEl);
       return;
     }
     autosave();
@@ -1380,9 +1460,9 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
   });
 
   $('waShareBtn').addEventListener('click', function(){
-    var check = validationErrors();
-    if (check.missing.length){
-      showWarn('Please add ' + check.missing.join(', ') + ' before sharing the PDF.');
+    var check = validateForSubmit();
+    if (!check.valid){
+      scrollToError(check.firstErrorEl);
       return;
     }
     autosave();
@@ -1402,7 +1482,6 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
       });
     } else {
       doc.save(filename);
-      showWarn('Sharing isn\'t supported on this device — the PDF has been downloaded instead.');
     }
   });
 
@@ -1474,20 +1553,38 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
     doc.text('Reference No: ' + orderNo, marginX, y);
     doc.text('Date & Time: ' + dateStr, pageW - marginX, y, { align: 'right' });
     y += 6;
-    doc.text('Client Name: ' + clientName, marginX, y);
-    doc.text('WhatsApp No: ' + waNum, pageW - marginX, y, { align: 'right' });
+    var clientLines = doc.splitTextToSize('Client Name: ' + clientName, pageW - marginX * 2);
+    clientLines.forEach(function(line){
+      doc.text(line, marginX, y);
+      y += 5.5;
+    });
+    doc.text('WhatsApp No: ' + waNum, marginX, y);
     y += 8;
 
-    var cols = [
-      { label: 'Design No', w: 26 },
-      { label: 'Gross Wt', w: 22 },
-      { label: 'Qty', w: 14 },
-      { label: 'Labour', w: 22 },
-      { label: 'Touch %', w: 18 },
-      { label: 'Net Wt', w: 26 },
-      { label: 'Fine Wt', w: 26 },
-      { label: 'Total Lab.', w: 32 }
+    var hasPromo = !!promoState;
+    var cols = hasPromo ? [
+      { label: 'Design No', w: 28, align: 'center' },
+      { label: 'Gross Wt', w: 20, align: 'center' },
+      { label: 'Qty', w: 10, align: 'center' },
+      { label: 'Labour', w: 18, align: 'right' },
+      { label: 'Net Wt', w: 16, align: 'right' },
+      { label: 'Touch', w: 12, align: 'center' },
+      { label: 'Promo\nTouch', w: 12, align: 'center', promo: true },
+      { label: 'Promo\nLabour', w: 26, align: 'right', promo: true },
+      { label: 'Fine Wt', w: 18, align: 'right' },
+      { label: 'Total Labour', w: 26, align: 'right' }
+    ] : [
+      { label: 'Design No', w: 30, align: 'center' },
+      { label: 'Gross Wt', w: 22, align: 'center' },
+      { label: 'Qty', w: 14, align: 'center' },
+      { label: 'Labour', w: 22, align: 'right' },
+      { label: 'Net Wt', w: 22, align: 'right' },
+      { label: 'Touch', w: 18, align: 'center' },
+      { label: 'Fine Wt', w: 22, align: 'right' },
+      { label: 'Total Labour', w: 36, align: 'right' }
     ];
+    var promoColIdx = [];
+    cols.forEach(function(c, i){ if (c.promo) promoColIdx.push(i); });
     var tableW = cols.reduce(function(s, c){ return s + c.w; }, 0);
     var tableX = (pageW - tableW) / 2;
     var rowH = 8;
@@ -1497,6 +1594,15 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
       var x = tableX;
       for (var k = 0; k < i; k++) x += cols[k].w;
       return x;
+    }
+
+    function drawCellText(c, i, yy, v){
+      var textY = yy + rowH / 2 + 1.1;
+      if (c.align === 'right'){
+        doc.text(String(v), colX(i) + c.w - 1.2, textY, { align: 'right' });
+      } else {
+        doc.text(String(v), colX(i) + c.w / 2, textY, { align: 'center' });
+      }
     }
 
     function drawHeaderRow(yy){
@@ -1509,68 +1615,111 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
       doc.setFontSize(7.5);
       cols.forEach(function(c, i){
         doc.line(colX(i), yy, colX(i), yy + rowH);
-        doc.text(c.label, colX(i) + c.w / 2, yy + rowH / 2 + 1.1, { align: 'center' });
+        if (c.promo) doc.setTextColor(47, 158, 88); else doc.setTextColor(0, 0, 0);
+        var lines = c.label.split('\n');
+        if (lines.length === 1){
+          doc.text(c.label, colX(i) + c.w / 2, yy + rowH / 2 + 1.1, { align: 'center' });
+        } else {
+          var lineHeight = 3.2;
+          var startY = yy + rowH / 2 - (lineHeight * (lines.length - 1)) / 2 + 1.1;
+          lines.forEach(function(line, li){
+            doc.text(line, colX(i) + c.w / 2, startY + li * lineHeight, { align: 'center' });
+          });
+        }
       });
+      doc.setTextColor(0, 0, 0);
       doc.line(tableX + tableW, yy, tableX + tableW, yy + rowH);
       return yy + rowH;
     }
 
-    function drawDataRow(yy, values, bold){
-      doc.setDrawColor(180, 172, 154);
-      doc.setLineWidth(0.2);
+    function drawDataRow(yy, values, bold, highlight){
+      if (highlight){
+        doc.setDrawColor(120, 112, 96);
+        doc.setLineWidth(0.5);
+        doc.setFillColor(230, 221, 200);
+        doc.rect(tableX, yy, tableW, rowH, 'F');
+      } else {
+        doc.setDrawColor(180, 172, 154);
+        doc.setLineWidth(0.2);
+      }
       doc.rect(tableX, yy, tableW, rowH);
-      doc.setFont('Lexend', bold ? 'bold' : 'normal');
-      doc.setFontSize(8);
+      doc.setFontSize(highlight ? 8.5 : 8);
       cols.forEach(function(c, i){
         doc.line(colX(i), yy, colX(i), yy + rowH);
         var v = values[i] === undefined ? '' : values[i];
-        doc.text(String(v), colX(i) + c.w / 2, yy + rowH / 2 + 1.1, { align: 'center' });
+        if (c.promo && !highlight){
+          doc.setFont('Lexend', 'bold');
+          doc.setTextColor(47, 158, 88);
+        } else {
+          doc.setFont('Lexend', bold ? 'bold' : 'normal');
+          doc.setTextColor(0, 0, 0);
+        }
+        drawCellText(c, i, yy, v);
       });
+      doc.setTextColor(0, 0, 0);
       doc.line(tableX + tableW, yy, tableX + tableW, yy + rowH);
       return yy + rowH;
     }
 
     y = drawHeaderRow(y);
 
-    var totQty = 0, totFine = 0, totLabour = 0;
+    var totQty = 0, totNet = 0, totFine = 0, totLabour = 0, totPromoLabour = 0;
     rows.forEach(function(r){
       if (y + rowH > bottomLimit){
         doc.addPage('a4', 'portrait');
         y = 16;
         y = drawHeaderRow(y);
       }
-      var vals = [
-        r.design,
-        fmtWt(r.pdfGrossWt) + (r.pdfGrossWt !== r.gross ? '*' : ''),
-        r.qty,
-        fmtMoneyPdf(r.labour),
-        r.touch,
-        fmtWt(r.netWt) + ' g',
-        fmtWt(r.fineWt) + ' g',
-        fmtMoneyPdf(r.totalLabour)
-      ];
+      var rowGrossVal = fmtWt(r.pdfGrossWt) + (r.cpWt > 0 ? '(' + fmtWt(r.cpWt) + ')' : '');
+      var displayFineWt = r.fineWt;
+      var rowPromoLabour = 0;
+      var vals;
+      if (hasPromo){
+        var promoTouch = Math.max(r.touch - promoState.touchOff, 0);
+        displayFineWt = r.netWt * promoTouch / 100;
+        rowPromoLabour = r.totalLabour * (1 - promoState.labourOffPct / 100);
+        vals = [
+          r.design,
+          rowGrossVal,
+          r.qty,
+          fmtMoneyPdf(r.labour),
+          fmtWt(r.netWt) + ' g',
+          r.touch,
+          promoTouch,
+          fmtMoneyPdf(rowPromoLabour),
+          fmtWt(displayFineWt) + ' g',
+          fmtMoneyPdf(r.totalLabour)
+        ];
+      } else {
+        vals = [
+          r.design,
+          rowGrossVal,
+          r.qty,
+          fmtMoneyPdf(r.labour),
+          fmtWt(r.netWt) + ' g',
+          r.touch,
+          fmtWt(displayFineWt) + ' g',
+          fmtMoneyPdf(r.totalLabour)
+        ];
+      }
       y = drawDataRow(y, vals, false);
       totQty += r.qty;
-      totFine += r.fineWt;
+      totNet += r.netWt;
+      totFine += displayFineWt;
       totLabour += r.totalLabour;
+      totPromoLabour += rowPromoLabour;
     });
 
     if (y + rowH > bottomLimit){
       doc.addPage('a4', 'portrait');
       y = 16;
     }
-    var totalsVals = ['Totals', '', totQty, '', '', '', fmtWt(totFine) + ' g', fmtMoneyPdf(totLabour)];
-    y = drawDataRow(y, totalsVals, true);
-
-    var anyCp = rows.some(function(r){ return r.pdfGrossWt !== r.gross; });
-    if (anyCp){
-      y += 4;
-      doc.setFont('Lexend', 'normal');
-      doc.setFontSize(7.5);
-      doc.setTextColor(107, 100, 85);
-      doc.text('* Gross Wt includes an added charm/casting piece weight.', marginX, y);
-      doc.setTextColor(0, 0, 0);
-    }
+    var totalsVals = hasPromo
+      ? ['Totals', '', totQty, '', fmtWt(totNet) + ' g', '', '', fmtMoneyPdf(totPromoLabour), fmtWt(totFine) + ' g', fmtMoneyPdf(totLabour)]
+      : ['Totals', '', totQty, '', fmtWt(totNet) + ' g', '', fmtWt(totFine) + ' g', fmtMoneyPdf(totLabour)];
+    y = drawDataRow(y, totalsVals, true, true);
+    doc.setDrawColor(180, 172, 154);
+    doc.setLineWidth(0.2);
 
     var effectiveFine = totFine;
     var effectiveLabour = totLabour;
@@ -1622,11 +1771,19 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
     var paid = numVal($('paidAmount'));
     doc.setFont('Lexend', 'normal');
     doc.setFontSize(10);
-    doc.text('Paid amount (advance): ' + fmtMoneyPdf(paid), marginX, y);
-    y += 6;
-    doc.setFont('Lexend', 'bold');
-    doc.text('Balance labour due: ' + fmtMoneyPdf(effectiveLabour - paid), marginX, y);
-    y += 6;
+    if (paid > 0){
+      doc.text('Total labour: ' + fmtMoneyPdf(effectiveLabour), marginX, y);
+      y += 6;
+      doc.text('Paid amount (advance): ' + fmtMoneyPdf(paid), marginX, y);
+      y += 6;
+      doc.setFont('Lexend', 'bold');
+      doc.text('Balance labour due: ' + fmtMoneyPdf(effectiveLabour - paid), marginX, y);
+      y += 6;
+    } else {
+      doc.setFont('Lexend', 'bold');
+      doc.text('Total labour due: ' + fmtMoneyPdf(effectiveLabour), marginX, y);
+      y += 6;
+    }
     doc.text('Total fine wt. due: ' + fmtWt(effectiveFine) + ' g', marginX, y);
     y += 9;
 
