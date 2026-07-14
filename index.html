@@ -1746,7 +1746,7 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
       doc.setFont('Lexend', 'normal');
       doc.setFontSize(9.5);
       doc.setTextColor(60, 56, 48);
-      var descLine = 'This order qualifies for an additional ' + promoState.touchOff + '% touch benefit and a flat ' + promoState.labourOffPct + '% discount on labour charges.';
+      var descLine = 'This order qualifies for an additional ' + promoState.touchOff + ' touch benefit and a flat ' + promoState.labourOffPct + '% discount on labour charges.';
       var descWrapped = doc.splitTextToSize(descLine, pageW - marginX * 2);
       descWrapped.forEach(function(line){
         doc.text(line, marginX, y);
