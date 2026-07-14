@@ -1043,7 +1043,7 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
       cpInp.addEventListener('input', function(){ cancelPromo(); recompute(); });
       hasCp = true;
       cpBtn.textContent = '\u2212 CP';
-      recompute();
+      updateSummary();
     }
     function removeCpField(){
       if (!hasCp) return;
@@ -1053,7 +1053,7 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
       cpInp = null;
       hasCp = false;
       cpBtn.textContent = '+ CP';
-      recompute();
+      updateSummary();
     }
     cpBtn.addEventListener('click', function(){
       if (hasCp) removeCpField(); else addCpField();
@@ -1062,9 +1062,7 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
       autosave();
     });
 
-    if (prefill && prefill.hasCp) addCpField(prefill.cpWt);
-
-    function recompute(){
+    function updateSummary(){
       card._markIncomplete(false);
       var gross = numVal(grossInp);
       var qty = numVal(qtyInp);
@@ -1078,6 +1076,9 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
       summary.querySelector('.net').textContent = fmtWt(netWt) + ' g';
       summary.querySelector('.fine').textContent = fmtWt(fineWt) + ' g';
       summary.querySelector('.lab').textContent = fmtMoney(totalLabour);
+    }
+    function recompute(){
+      updateSummary();
       recomputeAll();
       autosave();
     }
@@ -1169,7 +1170,9 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
       }
     };
 
-    recompute();
+    if (prefill && prefill.hasCp) addCpField(prefill.cpWt);
+
+    updateSummary();
     return card;
   }
 
@@ -1570,9 +1573,9 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
       { label: 'Net Wt', w: 16, align: 'right' },
       { label: 'Touch', w: 12, align: 'center' },
       { label: 'Promo\nTouch', w: 12, align: 'center', promo: true },
-      { label: 'Promo\nLabour', w: 26, align: 'right', promo: true },
       { label: 'Fine Wt', w: 18, align: 'right' },
-      { label: 'Total Labour', w: 26, align: 'right' }
+      { label: 'Total Labour', w: 26, align: 'right' },
+      { label: 'Promo\nLabour', w: 26, align: 'right', promo: true }
     ] : [
       { label: 'Design No', w: 30, align: 'center' },
       { label: 'Gross Wt', w: 22, align: 'center' },
@@ -1615,7 +1618,7 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
       doc.setFontSize(7.5);
       cols.forEach(function(c, i){
         doc.line(colX(i), yy, colX(i), yy + rowH);
-        if (c.promo) doc.setTextColor(47, 158, 88); else doc.setTextColor(0, 0, 0);
+        doc.setTextColor(0, 0, 0);
         var lines = c.label.split('\n');
         if (lines.length === 1){
           doc.text(c.label, colX(i) + c.w / 2, yy + rowH / 2 + 1.1, { align: 'center' });
@@ -1686,9 +1689,9 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
           fmtWt(r.netWt) + ' g',
           r.touch,
           promoTouch,
-          fmtMoneyPdf(rowPromoLabour),
           fmtWt(displayFineWt) + ' g',
-          fmtMoneyPdf(r.totalLabour)
+          fmtMoneyPdf(r.totalLabour),
+          fmtMoneyPdf(rowPromoLabour)
         ];
       } else {
         vals = [
@@ -1715,7 +1718,7 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
       y = 16;
     }
     var totalsVals = hasPromo
-      ? ['Totals', '', totQty, '', fmtWt(totNet) + ' g', '', '', fmtMoneyPdf(totPromoLabour), fmtWt(totFine) + ' g', fmtMoneyPdf(totLabour)]
+      ? ['Totals', '', totQty, '', fmtWt(totNet) + ' g', '', '', fmtWt(totFine) + ' g', fmtMoneyPdf(totLabour), fmtMoneyPdf(totPromoLabour)]
       : ['Totals', '', totQty, '', fmtWt(totNet) + ' g', '', fmtWt(totFine) + ' g', fmtMoneyPdf(totLabour)];
     y = drawDataRow(y, totalsVals, true, true);
     doc.setDrawColor(180, 172, 154);
@@ -1765,6 +1768,11 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
 
       effectiveFine = promoState.newFine;
       effectiveLabour = promoState.newLabour;
+
+      y += 5;
+      doc.setDrawColor(216, 210, 194);
+      doc.setLineWidth(0.3);
+      doc.line(marginX, y, pageW - marginX, y);
     }
 
     y += 8;
@@ -1786,6 +1794,11 @@ var LEXEND_700_BASE64 = "AAEAAAAQAQAABAAAR0RFRhZIEi0AAFccAAAAyEdQT1P2J/v3AABX5AA
     }
     doc.text('Total fine wt. due: ' + fmtWt(effectiveFine) + ' g', marginX, y);
     y += 9;
+
+    doc.setDrawColor(216, 210, 194);
+    doc.setLineWidth(0.3);
+    doc.line(marginX, y, pageW - marginX, y);
+    y += 7;
 
     var comments = $('comments').value.trim();
     if (comments){
